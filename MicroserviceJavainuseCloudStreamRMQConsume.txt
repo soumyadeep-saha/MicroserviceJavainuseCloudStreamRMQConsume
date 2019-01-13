@@ -1,0 +1,84 @@
+MicroserviceJavainuseCloudStreamRMQConsume
+ 
+Spring Cloud Stream Tutorial - Consume Message from RabbitMQ Simple Example
+
+We will see how to consume message using Spring Cloud Stream.
+
+Spring Cloud Stream provides abstraction over the queues through channels. No need to write configuration code for integrationg the application with the Message broker. RestTemlate and AmpqTemplate are the channel.
+
+Spring Cloud Concepts-
+Binder - Depending upon the messaging system we will have to specify a the messaging platform dependency, which in this case is RabbitMQ
+
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+</dependency>
+
+Sink - In Spring Cloud Stream, sink is used to consume message from queue. @StreamListener(target = Sink.INPUT) public void processRegisterEmployees(String employee){ System.out.println("Employees Registered --"+ employee); }
+
+Channel - A channel represents an input and output pipe between the Spring Cloud Stream Application and the Middleware Platform. A channel abstracts the queue that will either publish or consume the message. A channel is always associated with a queue. With this approach, we do not need to use the queue name in the application code. So if tomorrow the queue needs to be changed, we dont need to change the application code. 
+For example in the EmployeeRegistrationSource we have specified the channel name as employeeRegistrationChannel. In application.properties we have associated this channel with a RabbitMQ Exchange.
+
+The pom.xml will be as follows with the binder dependency of RabbitMQ as follows-
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+</dependency>
+
+Create the Spring Boot Bootstrap main class with the SpringBootApplication annotation as follows-
+@EnableBinding(Sink.class)
+@SpringBootApplication
+public class EmployeeRegistrationProcessingApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EmployeeRegistrationProcessingApplication.class, args);
+	}
+
+	@StreamListener(target = Sink.INPUT)
+	public void processRegisterEmployees(String employee) {
+		System.out.println("Employees Registered by Client " + employee);
+	}
+}
+
+Next we specify the properties. Here we specify the RabbitMQ properties. Also we associate the channel and the queue to be used -
+server.port=8090
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+
+spring.cloud.stream.bindings.input.destination=employeeRegistrations
+spring.cloud.stream.bindings.input.group=employeeRegistrationQueue
+
+We are done with the required Java code. Now lets start RabbitMQ. As we had explained in detail in the Getting started with RabbitMQ (https://www.javainuse.com/misc/rabbitmq-hello-world) perform the steps to start the RabbitMQ.
+
+Previous chapter we had published a message to the employeeRegistrations exchange. We will be consuming the same message here. Next start the Spring Boot Application by running it as a Java Application.
+
+Go to the RabbitMQ console-http://localhost:15672/. We can see in the Exchange section, a queue named employeeRegistrationQueue gets created and it gets bound to the employeeRegistrations exchange. The queue gets the message from this exchange and is then consumed by our Spring Cloud Stream Application.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
